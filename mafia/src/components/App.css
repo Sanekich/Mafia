@@ -64,6 +64,42 @@
   color: black;
 }
 
+/* Room page action buttons */
+.room-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.room-button {
+  background-color: transparent;
+  color: white;
+  border: 2px solid white;
+  padding: 12px 30px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.room-button:hover {
+  background-color: white;
+  color: black;
+}
+
+.leave-button:hover {
+  background-color: #ff4444;
+  border-color: #ff4444;
+  color: white;
+}
+
+.start-button:hover {
+  background-color: #44ff44;
+  border-color: #44ff44;
+  color: black;
+}
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -139,5 +175,16 @@
     width: 90vw;
     height: 90vh;
     padding: 8px;
+  }
+
+  .room-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .room-button {
+    width: 95%;
+    margin: 0px;
+    margin-left: 0px;
   }
 }

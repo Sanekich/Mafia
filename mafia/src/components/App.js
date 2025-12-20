@@ -7,31 +7,25 @@ function App() {
   const { rooms, createRoom, joinRoom } = useContext(RoomsContext);
   const [showRoomModal, setShowRoomModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
-  const [playerName, setPlayerName] = useState('');
+  const [inputName, setInputName] = useState(''); // Local state for the input field
   const [currentRoomId, setCurrentRoomId] = useState(null);
   const navigate = useNavigate();
 
-  // Create room (name = id)
   const handleCreateRoom = async () => {
-    if (!playerName.trim()) return;
-    const id = await createRoom(id => id); // backend will assign id
-    await joinRoom(id, playerName);
-    setPlayerName('');
+    if (!inputName.trim()) return;
+    const roomId = await createRoom(inputName);
     setShowRoomModal(false);
-    navigate(`/rooms/${id}`);
+    navigate(`/rooms/${roomId}`);
   };
 
-  // Open join modal
   const openJoinModal = (id) => {
     setCurrentRoomId(id);
     setShowJoinModal(true);
   };
 
-  // Join room after entering name
   const handleJoinRoom = async () => {
-    if (!playerName.trim()) return;
-    await joinRoom(currentRoomId, playerName);
-    setPlayerName('');
+    if (!inputName.trim()) return;
+    await joinRoom(currentRoomId, inputName);
     setShowJoinModal(false);
     navigate(`/rooms/${currentRoomId}`);
   };
@@ -40,57 +34,39 @@ function App() {
     <div className="App">
       <div className="content">
         <h2 className="title">
-          Rooms
+          Lobby
           <button onClick={() => setShowRoomModal(true)} className="ButtonCreate">
             Create Room
           </button>
         </h2>
 
-        <div>
-          {rooms.length === 0 && <p>No rooms yet.</p>}
+        <div className="room-list">
+          {rooms.length === 0 && <p>No rooms available. Create one!</p>}
           {rooms.map(room => (
             <div key={room.id} className="room-row">
-              <span>{room.id}</span> {/* room name = id */}
-              <span>{room.players.length} players</span>
+              <span><strong>Room {room.id}</strong></span>
+              <span>{room.players.length} Players</span>
               <button onClick={() => openJoinModal(room.id)}>Join</button>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Modal for creating room */}
-      {showRoomModal && (
+      {/* Unified Modal Logic */}
+      {(showRoomModal || showJoinModal) && (
         <div className="modal-overlay">
           <div className="modal">
-            <h3>Enter your name to create room</h3>
+            <h3>{showRoomModal ? 'Create Room' : `Join Room ${currentRoomId}`}</h3>
             <input
               type="text"
-              placeholder="Your name"
-              value={playerName}
-              onChange={e => setPlayerName(e.target.value)}
+              placeholder="Enter your name"
+              value={inputName}
+              onChange={e => setInputName(e.target.value)}
+              autoFocus
             />
             <div className="modal-actions">
-              <button onClick={() => setShowRoomModal(false)}>Cancel</button>
-              <button onClick={handleCreateRoom}>Create</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Modal for joining room */}
-      {showJoinModal && (
-        <div className="modal-overlay">
-          <div className="modal">
-            <h3>Enter your name to join room {currentRoomId}</h3>
-            <input
-              type="text"
-              placeholder="Your name"
-              value={playerName}
-              onChange={e => setPlayerName(e.target.value)}
-            />
-            <div className="modal-actions">
-              <button onClick={() => setShowJoinModal(false)}>Cancel</button>
-              <button onClick={handleJoinRoom}>Join</button>
+              <button onClick={() => { setShowRoomModal(false); setShowJoinModal(false); }}>Cancel</button>
+              <button onClick={showRoomModal ? handleCreateRoom : handleJoinRoom}>Confirm</button>
             </div>
           </div>
         </div>

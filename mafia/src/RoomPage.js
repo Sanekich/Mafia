@@ -1,51 +1,66 @@
-// src/RoomPage.js
 import { useParams, useNavigate } from 'react-router-dom';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useMemo,useEffect } from 'react';
 import { RoomsContext } from './RoomsContext';
 import './components/App.css';
 
 function RoomPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { rooms, playerName, leaveRoom, fetchRooms } = useContext(RoomsContext);
-  const [room, setRoom] = useState(null);
+  const { rooms, leaveRoom,startGame } = useContext(RoomsContext);
 
-  // Poll and update room every 1.5s
-  useEffect(() => {
-    const update = async () => {
-      await fetchRooms();
-      const currentRoom = rooms.find(r => r.id === parseInt(id));
-      setRoom(currentRoom);
-    };
 
-    update(); // initial load
-    const interval = setInterval(update, 1500);
-    return () => clearInterval(interval);
-  }, [rooms, id, fetchRooms]);
-
-  if (!room) return <h2 className="App">Room not found</h2>;
+  const room = useMemo(() => {
+    if (!Array.isArray(rooms)) return null; 
+    return rooms.find(r => r.id === parseInt(id));
+  }, [rooms, id]);
 
   const handleLeave = async () => {
-    await leaveRoom(room.id, playerName);
-    navigate('/'); // go back to room list
+    await leaveRoom(parseInt(id));
+    navigate('/');
   };
+
+  useEffect(() => {
+
+  if (room && room.status === 'started') {
+    navigate(`/mafia/${room.id}`);
+  }
+}, [room, navigate]);
+
+  const handleStart = () => {
+    startGame(room.id);
+  };
+
+  if (!room) {
+    return (
+      <div className="App">
+        <div className="content">
+          <h2>Room not found</h2>
+          <button onClick={() => navigate('/')}>Back to Lobby</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="App">
       <div className="content">
         <h2 className="title">Room {room.id}</h2>
+        <h3>Players in Lobby:</h3>
+        <div className="player-list">
+          {room.players.map((player, i) => (
+            <div key={i} className="room-row">
+              <span>{player}</span>
+              {/* Optional: Add a "you" tag */}
+              {player === localStorage.getItem('playerName') && <small> (You)</small>}
+            </div>
+          ))}
+        </div>
 
-        <h3>Players:</h3>
-        {room.players.length === 0 && <p>No players yet.</p>}
-        {room.players.map((player, i) => (
-          <div key={i} className="room-row">
-            <span>{player}</span>
-          </div>
-        ))}
-
-        <div style={{ marginTop: '10px' }}>
-          <button onClick={handleLeave}>Leave Room</button>
-          <button style={{ marginLeft: '10px' }}>Start</button>
+        <div style={{ marginTop: '20px' }}>
+          <button onClick={handleLeave} className="room-button leave-button">Leave Room</button>
+          <button className='room-button' onClick={handleStart} disabled={room.players.length < 3}>
+            Start Game
+          </button>
         </div>
       </div>
     </div>

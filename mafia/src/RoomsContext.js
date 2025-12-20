@@ -1,5 +1,4 @@
-// src/RoomsContext.js
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useCallback } from 'react';
 import { url } from './URL';
 
 export const RoomsContext = createContext();
@@ -8,54 +7,74 @@ export function RoomsProvider({ children }) {
   const [rooms, setRooms] = useState([]);
   const [playerName, setPlayerName] = useState(localStorage.getItem('playerName') || '');
 
-  // Fetch rooms from backend
-  const fetchRooms = async () => {
+  // src/RoomsContext.js
+const fetchRooms = async () => {
+  try {
     const res = await fetch(`${url}/rooms`);
     const data = await res.json();
-    setRooms(data);
-  };
 
-  // Poll rooms every 1.5 seconds
+    // Safety Check: Ensure data is an array before setting state
+    if (Array.isArray(data)) {
+      setRooms(data);
+    } else {
+      console.error("Backend did not return an array:", data);
+      setRooms([]); // Fallback to empty array to prevent .find() crashes
+    }
+  } catch (err) {
+    console.error("Connection error:", err);
+    setRooms([]); 
+  }
+};
+
+  // Single polling source for the whole app
   useEffect(() => {
     fetchRooms();
     const interval = setInterval(fetchRooms, 1500);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchRooms]);
 
-  const setName = (name) => {
+  const updatePlayerName = (name) => {
     setPlayerName(name);
     localStorage.setItem('playerName', name);
   };
 
-  const createRoom = async () => {
+  const createRoom = async (name) => {
+    updatePlayerName(name); // Save name first
     const res = await fetch(`${url}/rooms`, { method: 'POST' });
     const newRoom = await res.json();
-    await joinRoom(newRoom.id); // auto-join creator
-    return newRoom.id;
+    // The backend creates an empty room; now we join it
+    return await joinRoom(newRoom.id, name);
   };
 
-  const joinRoom = async (roomId, name = playerName) => {
-    if (!name.trim()) return;
-    await fetch(`${url}/rooms/${roomId}/join`, {
+  const joinRoom = async (roomId, name) => {
+    updatePlayerName(name); // Ensure name is synced
+    const res = await fetch(`${url}/rooms/${roomId}/join`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ playerName: name })
     });
-    await fetchRooms(); // immediately refresh rooms
+    const updatedRoom = await res.json();
+    await fetchRooms(); 
+    return updatedRoom.id;
   };
 
-  const leaveRoom = async (roomId, name = playerName) => {
+  const leaveRoom = async (roomId) => {
     await fetch(`${url}/rooms/${roomId}/leave`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playerName: name })
+      body: JSON.stringify({ playerName })
     });
-    await fetchRooms(); // refresh rooms
+    await fetchRooms();
   };
+    const startGame = async (roomId) => {
+      await fetch(`${url}/rooms/${roomId}/start`, { method: 'POST' });
+      await fetchRooms(); // Refresh state immediately
+    };
 
-  return (
-    <RoomsContext.Provider value={{ rooms, playerName, setName, createRoom, joinRoom, leaveRoom, fetchRooms }}>
-      {children}
-    </RoomsContext.Provider>
-  );
+    // Update the return value to include startGame
+    return (
+      <RoomsContext.Provider value={{ rooms, playerName, createRoom, joinRoom, leaveRoom, fetchRooms, startGame }}>
+        {children}
+      </RoomsContext.Provider>
+    );
 }
