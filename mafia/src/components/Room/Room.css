@@ -1,0 +1,91 @@
+.room-page {
+  max-width: 660px;
+  margin: 0 auto;
+  padding: 1.25rem;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 18px;
+  box-shadow: 0 16px 45px rgba(0, 0, 0, 0.09);
+}
+
+.room-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.room-header h2 {
+  margin: 0 0 0.35rem;
+}
+
+.room-host,
+.room-player {
+  margin: 0;
+  color: #444;
+  font-size: 0.95rem;
+}
+
+.leave-button,
+.start-button {
+  background: #282c34;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.leave-button:hover,
+.start-button:hover {
+  background: #1f242d;
+}
+
+.room-status {
+  margin-bottom: 1.25rem;
+}
+
+.status-waiting,
+.status-started {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.status-waiting {
+  background: #f4f4f4;
+  color: #333;
+}
+
+.status-started {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.player-list-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  margin: 1rem;
+  background: #fff;
+}
+
+.player-list-card h3 {
+  margin-top: 0;
+}
+
+.player-list-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.player-list-card li {
+  padding: 0.85rem 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.player-list-card li:last-child {
+  border-bottom: none;
+}
