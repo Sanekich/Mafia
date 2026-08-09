@@ -5,6 +5,12 @@
   background: rgba(255, 255, 255, 0.96);
   border-radius: 18px;
   box-shadow: 0 16px 45px rgba(0, 0, 0, 0.09);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.game-page.is-night {
+  background: #0b0b0f;
+  color: #f5f5f5;
 }
 
 .game-header {
@@ -23,6 +29,10 @@
   margin: 0;
   color: #444;
   font-size: 0.95rem;
+}
+
+.is-night .game-subtitle {
+  color: #cbd5e1;
 }
 
 .leave-button,
@@ -48,34 +58,13 @@
   cursor: not-allowed;
 }
 
-/* Status pill — same shape/spacing language as Room's status pill */
-.game-status {
-  margin-bottom: 1.25rem;
+.is-night .leave-button {
+  background: transparent;
+  border: 1px solid #f5f5f5;
 }
 
-.status-pill {
-  display: inline-block;
-  padding: 0.45rem 0.8rem;
-  border-radius: 999px;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.status-pill.phase-reveal,
-.status-pill.phase-night {
-  background: #f4f4f4;
-  color: #333;
-}
-
-.status-pill.phase-day,
-.status-pill.phase-vote {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.status-pill.phase-ended {
-  background: #fee2e2;
-  color: #991b1b;
+.is-night .leave-button:hover {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .game-instructions,
@@ -144,15 +133,85 @@
   margin: 0.75rem 0 0;
 }
 
-.game-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
 .help-text {
   color: #475569;
-  margin: 0;
+  margin: 0.75rem 0 0;
+}
+
+/* --- Night phases: role reveal, mafia / cop / doctor announce & action --- */
+
+.night-screen {
+  min-height: 380px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 2.5rem 1rem 3.5rem;
+  position: relative;
+}
+
+.night-title {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #f5f5f5;
+}
+
+.night-subtitle {
+  color: #cbd5e1;
+  font-size: 1rem;
+}
+
+.night-countdown {
+  color: #94a3b8;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.night-role-badge {
+  position: absolute;
+  bottom: 1rem;
+  right: 1.25rem;
+  font-size: 0.85rem;
+  color: #e2e8f0;
+  opacity: 0.8;
+}
+
+.night-target-list {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.night-target-button {
+  border: 2px solid #f5f5f5;
+  background: transparent;
+  color: #f5f5f5;
+  border-radius: 10px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.night-target-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.night-target-button.selected {
+  background: #f5f5f5;
+  color: #0b0b0f;
+}
+
+.night-target-count {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  white-space: nowrap;
 }
