@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import './Game.css'
 
-const API_BASE = 'http://localhost:5000'
+const API_BASE = 'https://mafiaback.onrender.com'
 const POLL_MS = 1500
 
 const ROLE_LABELS = {
