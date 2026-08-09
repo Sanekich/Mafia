@@ -67,10 +67,11 @@ function Game({ room, playerName, isHost, onLeave }) {
   }, [])
 
   const updateLocalSelection = (field, value) => {
-    setState((prev) => (prev ? { ...prev, [field]: value } : prev))
-    if (stateRef.current) {
-      stateRef.current[field] = value
-    }
+    const baseState = stateRef.current ?? state ?? {}
+    const nextState = { ...baseState, [field]: value }
+
+    stateRef.current = nextState
+    setState(nextState)
   }
 
   const sendAction = async (path, target) => {
