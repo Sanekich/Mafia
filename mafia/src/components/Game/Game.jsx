@@ -31,6 +31,8 @@ function Game({ room, playerName, isHost, onLeave }) {
   const [state, setState] = useState(null)
   const [countdown, setCountdown] = useState(0)
   const [error, setError] = useState('')
+  const [feedback, setFeedback] = useState('')
+  const [pendingAction, setPendingAction] = useState(false)
   const stateRef = useRef(null)
 
   const fetchState = async () => {
@@ -64,7 +66,31 @@ function Game({ room, playerName, isHost, onLeave }) {
     return () => clearInterval(tick)
   }, [])
 
+  const updateLocalSelection = (field, value) => {
+    setState((prev) => (prev ? { ...prev, [field]: value } : prev))
+    if (stateRef.current) {
+      stateRef.current[field] = value
+    }
+  }
+
   const sendAction = async (path, target) => {
+    if (pendingAction) return
+
+    const selectionField = {
+      'mafia-vote': 'myMafiaVote',
+      'cop-target': 'myCopTarget',
+      'doctor-target': 'myDoctorTarget',
+      vote: 'myVoteTarget'
+    }[path]
+
+    if (selectionField) {
+      updateLocalSelection(selectionField, target)
+    }
+
+    setPendingAction(true)
+    setError('')
+    setFeedback('Отправляем выбор...')
+
     try {
       const response = await fetch(`${API_BASE}/rooms/${room._id}/game/${path}`, {
         credentials: 'include',
@@ -72,17 +98,40 @@ function Game({ room, playerName, isHost, onLeave }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ target })
       })
-      const data = await response.json()
+
+      const text = await response.text()
+      let data = null
+      if (text) {
+        try {
+          data = JSON.parse(text)
+        } catch {
+          data = null
+        }
+      }
+
       if (!response.ok) {
-        setError(data.error || 'Действие не удалось.')
+        setError(data?.error || 'Действие не удалось.')
+        setFeedback('')
         return
       }
+
       setError('')
-      stateRef.current = data
-      setState(data)
-      setCountdown(data.countdown)
+      if (data) {
+        stateRef.current = data
+        setState(data)
+        setCountdown(data.countdown || 0)
+      } else {
+        await fetchState()
+      }
+
+      const actionLabel = target === 'Skip' ? 'пропуск' : target
+      setFeedback(`Выбор сохранён: ${actionLabel}`)
     } catch (err) {
       console.error('Game action failed:', err)
+      setError('Не удалось отправить действие. Попробуйте ещё раз.')
+      setFeedback('')
+    } finally {
+      setPendingAction(false)
     }
   }
 
@@ -156,7 +205,8 @@ function Game({ room, playerName, isHost, onLeave }) {
               <button
                 key={target.name}
                 className={`night-target-button ${state.myMafiaVote === target.name ? 'selected' : ''}`}
-                onClick={() => sendAction('mafia-vote', target.name)}>
+                onClick={() => sendAction('mafia-vote', target.name)}
+                disabled={pendingAction}>
                 <span>{target.name}</span>
                 <span className="night-target-count">
                   Убить ({(state.mafiaTally && state.mafiaTally[target.name]) || 0}/{state.mafiaCount})
@@ -189,7 +239,8 @@ function Game({ room, playerName, isHost, onLeave }) {
               <button
                 key={target.name}
                 className={`night-target-button ${state.myCopTarget === target.name ? 'selected' : ''}`}
-                onClick={() => sendAction('cop-target', target.name)}>
+                onClick={() => sendAction('cop-target', target.name)}
+                disabled={pendingAction}>
                 <span>{target.name}</span>
               </button>
             ))}
@@ -219,7 +270,8 @@ function Game({ room, playerName, isHost, onLeave }) {
               <button
                 key={target.name}
                 className={`night-target-button ${state.myDoctorTarget === target.name ? 'selected' : ''}`}
-                onClick={() => sendAction('doctor-target', target.name)}>
+                onClick={() => sendAction('doctor-target', target.name)}
+                disabled={pendingAction}>
                 <span>{target.name}</span>
               </button>
             ))}
@@ -243,6 +295,7 @@ function Game({ room, playerName, isHost, onLeave }) {
       </div>
 
       {error && <p className="help-text" style={{ color: '#dc2626' }}>{error}</p>}
+      {feedback && <p className={`help-text action-feedback ${pendingAction ? 'is-pending' : 'is-success'}`}>{feedback}</p>}
 
       {isNight ? (
         renderNightScreen()
@@ -295,13 +348,15 @@ function Game({ room, playerName, isHost, onLeave }) {
                     <button
                       key={target.name}
                       className={`target-button ${state.myVoteTarget === target.name ? 'selected' : ''}`}
-                      onClick={() => sendAction('vote', target.name)}>
+                      onClick={() => sendAction('vote', target.name)}
+                      disabled={pendingAction}>
                       {target.name}
                     </button>
                   ))}
                 <button
                   className={`target-button ${state.myVoteTarget === 'Skip' ? 'selected' : ''}`}
-                  onClick={() => sendAction('vote', 'Skip')}>
+                  onClick={() => sendAction('vote', 'Skip')}
+                  disabled={pendingAction}>
                   Пропустить
                 </button>
               </div>

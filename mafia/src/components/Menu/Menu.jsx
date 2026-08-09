@@ -158,9 +158,13 @@ function Menu({ onRoomEnter }) {
                 <div className="room-meta">Игроки: {room.players?.length ?? 0}</div>
                 <div className="room-meta">Статус: {room.started ? 'Игра началась' : 'Ожидание'}</div>
               </div>
-              <button className="join-room-button" onClick={() => openJoinModal(room)}>
-                Войти
-              </button>
+              
+              {/* Only render the join button if the game HAS NOT started */}
+              {!room.started && (
+                <button className="join-room-button" onClick={() => openJoinModal(room)}>
+                  Войти
+                </button>
+              )}
             </li>
           ))}
         </ul>
