@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import './Room.css'
 import Game from '../Game/Game.jsx'
 
+const API_BASE_URL = 'https://mafiaback.onrender.com'
+
 function Room({ room, playerName, isHost, onRoomUpdated, onLeave }) {
   const [matchStarted, setMatchStarted] = useState(room.started)
 
@@ -13,7 +15,7 @@ function Room({ room, playerName, isHost, onRoomUpdated, onLeave }) {
 
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`http://localhost:5000/rooms/${room._id}`, {
+        const response = await fetch(`${API_BASE_URL}/rooms/${room._id}`, {
           credentials: 'include'
         })
 
@@ -39,7 +41,7 @@ function Room({ room, playerName, isHost, onRoomUpdated, onLeave }) {
 
   const startMatch = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/rooms/${room._id}/start`, {
+      const response = await fetch(`${API_BASE_URL}/rooms/${room._id}/start`, {
         credentials: 'include',
         method: 'POST',
         headers: {
@@ -50,7 +52,7 @@ function Room({ room, playerName, isHost, onRoomUpdated, onLeave }) {
 
       if (!response.ok) {
         const body = await response.json()
-        throw new Error(body.error || 'Failed to start the match')
+        throw new Error(body.error || 'Не удалось начать игру')
       }
 
       const updatedRoom = await response.json()
@@ -58,13 +60,13 @@ function Room({ room, playerName, isHost, onRoomUpdated, onLeave }) {
       setMatchStarted(true)
     } catch (err) {
       console.error(err)
-      alert(err.message || 'Unable to start match')
+      alert(err.message || 'Не удалось начать игру')
     }
   }
 
   const leaveRoom = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/rooms/${room._id}/leave`, {
+      const response = await fetch(`${API_BASE_URL}/rooms/${room._id}/leave`, {
         credentials: 'include',
         method: 'POST',
         headers: {
@@ -75,7 +77,7 @@ function Room({ room, playerName, isHost, onRoomUpdated, onLeave }) {
 
       if (!response.ok) {
         const body = await response.json()
-        throw new Error(body.error || 'Failed to leave room')
+        throw new Error(body.error || 'Не удалось покинуть комнату')
       }
 
       const data = await response.json()
@@ -88,7 +90,7 @@ function Room({ room, playerName, isHost, onRoomUpdated, onLeave }) {
       onLeave()
     } catch (err) {
       console.error(err)
-      alert(err.message || 'Unable to leave room')
+      alert(err.message || 'Не удалось покинуть комнату')
     }
   }
 
@@ -101,25 +103,25 @@ function Room({ room, playerName, isHost, onRoomUpdated, onLeave }) {
       <div className="room-header">
         <div>
           <h2>{room.name}</h2>
-          <p className="room-host">Host: {room.host}</p>
-          <p className="room-player">You: {playerName} {isHost ? '(Host)' : ''}</p>
+          <p className="room-host">Хост: {room.host}</p>
+          <p className="room-player">Вы: {playerName} {isHost ? '(хост)' : ''}</p>
         </div>
-        <button className="leave-button" onClick={leaveRoom}>Leave</button>
+        <button className="leave-button" onClick={leaveRoom}>Выйти</button>
       </div>
 
       <div className="room-status">
         <span className={room.started ? 'status-started' : 'status-waiting'}>
-          {room.started ? 'Match started' : 'Waiting for players'}
+          {room.started ? 'Игра началась' : 'Ожидание игроков'}
         </span>
       </div>
 
       <div className="player-list-card">
-        <h3>Players</h3>
+        <h3>Игроки</h3>
         <ul>
           {room.players.map((player, index) => (
             <li key={`${player.name}-${index}`}>
               {player.name}
-              {player.name === room.host ? ' (host)' : ''}
+              {player.name === room.host ? ' (хост)' : ''}
             </li>
           ))}
         </ul>
@@ -127,7 +129,7 @@ function Room({ room, playerName, isHost, onRoomUpdated, onLeave }) {
 
       {!room.started && isHost && (
         <button className="start-button" onClick={startMatch}>
-          Start Match
+          Начать игру
         </button>
       )}
     </div>

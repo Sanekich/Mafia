@@ -6,11 +6,18 @@ const STORAGE_KEY_PREFIX = 'mafiaGameState_'
 const ROLES = ['Mafia', 'Cop', 'Doctor', 'Citizen']
 
 const PHASE_LABELS = {
-  Reveal: 'Getting ready',
-  Night: 'Night phase',
-  Day: 'Day phase',
-  Vote: 'Voting',
-  Ended: 'Game over'
+  Reveal: 'Подготовка',
+  Night: 'Ночная фаза',
+  Day: 'Дневная фаза',
+  Vote: 'Голосование',
+  Ended: 'Игра завершена'
+}
+
+const ROLE_LABELS = {
+  Mafia: 'Мафия',
+  Cop: 'Комиссар',
+  Doctor: 'Доктор',
+  Citizen: 'Мирный'
 }
 
 const PHASE_CLASS = {
@@ -173,7 +180,7 @@ function Game({ room, playerName, isHost, onLeave }) {
       phase: winner ? 'Ended' : 'Reveal',
       nightNumber: winner ? state.nightNumber : state.nightNumber + 1,
       dayNumber: winner ? state.dayNumber : state.dayNumber,
-      voteResult: votedOut ? `${votedOut} was voted out.` : 'No one was voted out.',
+      voteResult: votedOut ? `${votedOut} был исключён голосованием.` : 'Никто не был исключён.',
       eliminated: nextEliminated,
       countdown: 60,
       playerChoice: null,
@@ -192,10 +199,10 @@ function Game({ room, playerName, isHost, onLeave }) {
     const nonMafiaAlive = aliveNow.length - mafiaAlive
 
     if (mafiaAlive === 0) {
-      return 'Citizens win!'
+      return 'Мирные победили!'
     }
     if (mafiaAlive >= nonMafiaAlive) {
-      return 'Mafia wins!'
+      return 'Мафия победила!'
     }
     return null
   }
@@ -229,7 +236,7 @@ function Game({ room, playerName, isHost, onLeave }) {
 
   const killedPlayer = gameState.lastKill
   const inspectText = gameState.inspectResult
-    ? `${gameState.inspectResult.target} is ${gameState.inspectResult.isMafia ? 'Mafia' : 'not Mafia'}.`
+    ? `${gameState.inspectResult.target} ${gameState.inspectResult.isMafia ? 'мафия' : 'не мафия'}.`
     : null
   const winnerText = gameState.winner
 
@@ -237,11 +244,11 @@ function Game({ room, playerName, isHost, onLeave }) {
     <div className="game-page">
       <div className="game-header">
         <div>
-          <h2>{room.name} — Mafia Game</h2>
-          <p className="game-subtitle">Role: <strong>{role}</strong></p>
-          <p className="game-subtitle">Night {gameState.nightNumber} · Day {gameState.dayNumber}</p>
+          <h2>{room.name} — Игра в мафию</h2>
+          <p className="game-subtitle">Роль: <strong>{ROLE_LABELS[role] || role}</strong></p>
+          <p className="game-subtitle">Ночь {gameState.nightNumber} · День {gameState.dayNumber}</p>
         </div>
-        <button className="leave-button" onClick={onLeave}>Leave Lobby</button>
+        <button className="leave-button" onClick={onLeave}>Выйти из лобби</button>
       </div>
 
       <div className="game-status">
@@ -252,24 +259,24 @@ function Game({ room, playerName, isHost, onLeave }) {
 
       {winnerText ? (
         <div className="game-result-card">
-          <h3>Game Over</h3>
+          <h3>Игра завершена</h3>
           <p>{winnerText}</p>
-          <button className="game-button" onClick={() => window.location.reload()}>Restart</button>
+          <button className="game-button" onClick={() => window.location.reload()}>Начать заново</button>
         </div>
       ) : (
         <>
           <div className="game-instructions">
-            <p>Classic Mafia flow is active. Follow your role and act during the correct phase.</p>
+            <p>Сейчас активен классический сценарий мафии. Следуйте своей роли и действуйте в нужную фазу.</p>
             <ul>
-              <li><strong>Mafia</strong> chooses one player to eliminate during the night.</li>
-              <li><strong>Cop</strong> inspects one player each night.</li>
-              <li><strong>Doctor</strong> protects one player each night.</li>
-              <li><strong>Citizens</strong> vote during the day.</li>
+              <li><strong>Мафия</strong> выбирает одного игрока для устранения ночью.</li>
+              <li><strong>Комиссар</strong> проверяет одного игрока каждую ночь.</li>
+              <li><strong>Доктор</strong> защищает одного игрока каждую ночь.</li>
+              <li><strong>Мирные</strong> голосуют днём.</li>
             </ul>
           </div>
 
           <div className="player-list-card">
-            <h3>Players</h3>
+            <h3>Игроки</h3>
             <ul>
               {playersWithRoles.map((player) => {
                 const alive = !gameState.eliminated.includes(player.name)
@@ -278,10 +285,10 @@ function Game({ room, playerName, isHost, onLeave }) {
                     key={player.name}
                     className={`${player.name === playerName ? 'current-player' : ''} ${alive ? '' : 'eliminated-player'}`}>
                     {player.name}
-                    {player.name === room.host ? ' (host)' : ''}
-                    {player.name === playerName ? ' — You' : ''}
-                    {player.name === playerName ? ` — ${player.role}` : ''}
-                    {!alive ? ' (dead)' : ''}
+                    {player.name === room.host ? ' (хост)' : ''}
+                    {player.name === playerName ? ' — Вы' : ''}
+                    {player.name === playerName ? ` — ${ROLE_LABELS[player.role] || player.role}` : ''}
+                    {!alive ? ' (мёртв)' : ''}
                   </li>
                 )
               })}
@@ -290,9 +297,9 @@ function Game({ room, playerName, isHost, onLeave }) {
 
           {gameState.phase === 'Reveal' && (
             <div className="phase-card">
-              <h3>Your role</h3>
-              <p>You are <strong>{role}</strong>.</p>
-              <button className="game-button" onClick={startNight}>Begin Night</button>
+              <h3>Ваша роль</h3>
+              <p>Вы — <strong>{ROLE_LABELS[role] || role}</strong>.</p>
+              <button className="game-button" onClick={startNight}>Начать ночь</button>
             </div>
           )}
 
@@ -300,8 +307,8 @@ function Game({ room, playerName, isHost, onLeave }) {
             <div className="phase-card">
               {role === 'Mafia' ? (
                 <>
-                  <h3>Night action</h3>
-                  <p>Choose a player to eliminate.</p>
+                  <h3>Ночное действие</h3>
+                  <p>Выберите игрока для устранения.</p>
                   <div className="target-grid">
                     {targets
                       .filter((player) => player.role !== 'Mafia' && !gameState.eliminated.includes(player.name))
@@ -318,13 +325,13 @@ function Game({ room, playerName, isHost, onLeave }) {
                     className="game-button"
                     disabled={!gameState.mafiaTarget}
                     onClick={() => updateState(resolveNight())}>
-                    Confirm Night Decision
+                    Подтвердить решение
                   </button>
                 </>
               ) : role === 'Cop' ? (
                 <>
-                  <h3>Night action</h3>
-                  <p>Inspect one player to see if they are Mafia.</p>
+                  <h3>Ночное действие</h3>
+                  <p>Проверьте одного игрока, чтобы узнать, является ли он мафией.</p>
                   <div className="target-grid">
                     {targets
                       .filter((player) => !gameState.eliminated.includes(player.name))
@@ -341,13 +348,13 @@ function Game({ room, playerName, isHost, onLeave }) {
                     className="game-button"
                     disabled={!gameState.copTarget}
                     onClick={() => updateState(resolveNight())}>
-                    Confirm Inspection
+                    Подтвердить проверку
                   </button>
                 </>
               ) : role === 'Doctor' ? (
                 <>
-                  <h3>Night action</h3>
-                  <p>Choose one player to protect.</p>
+                  <h3>Ночное действие</h3>
+                  <p>Выберите игрока для защиты.</p>
                   <div className="target-grid">
                     {alivePlayers
                       .filter((player) => player.name !== playerName)
@@ -364,16 +371,16 @@ function Game({ room, playerName, isHost, onLeave }) {
                     className="game-button"
                     disabled={!gameState.doctorTarget}
                     onClick={() => updateState(resolveNight())}>
-                    Confirm Protection
+                    Подтвердить защиту
                   </button>
                 </>
               ) : (
                 <>
-                  <h3>Nighttime</h3>
-                  <p>The Mafia is deciding...</p>
-                  <p>Wait for the night to end.</p>
+                  <h3>Ночное время</h3>
+                  <p>Мафия решает...</p>
+                  <p>Подождите, пока ночь закончится.</p>
                   <button className="game-button" onClick={() => updateState(resolveNight())}>
-                    End Night
+                    Закончить ночь
                   </button>
                 </>
               )}
@@ -382,17 +389,17 @@ function Game({ room, playerName, isHost, onLeave }) {
 
           {gameState.phase === 'Day' && (
             <div className="phase-card">
-              <h3>Day has risen</h3>
-              <p>{killedPlayer ? `${killedPlayer} was killed last night.` : 'No one was killed last night.'}</p>
+              <h3>День наступил</h3>
+              <p>{killedPlayer ? `${killedPlayer} был убит прошлой ночью.` : 'Прошлой ночью никто не был убит.'}</p>
               {inspectText && <p>{inspectText}</p>}
-              <button className="game-button" onClick={startVote}>Start Voting</button>
+              <button className="game-button" onClick={startVote}>Начать голосование</button>
             </div>
           )}
 
           {gameState.phase === 'Vote' && (
             <div className="phase-card">
-              <h3>Vote to lynch</h3>
-              <p>Choose a player or skip. Countdown: {gameState.countdown}s.</p>
+              <h3>Голосование за казнь</h3>
+              <p>Выберите игрока или пропустите. Таймер: {gameState.countdown}с.</p>
               <div className="target-grid">
                 {alivePlayers
                   .filter((player) => player.name !== playerName)
@@ -407,18 +414,18 @@ function Game({ room, playerName, isHost, onLeave }) {
                 <button
                   className={`target-button ${gameState.voteTarget === 'Skip' ? 'selected' : ''}`}
                   onClick={() => selectVote('Skip')}>
-                  Skip
+                  Пропустить
                 </button>
               </div>
               <button className="game-button" onClick={() => updateState(resolveVote(gameState))}>
-                Submit Vote
+                Подтвердить голос
               </button>
             </div>
           )}
 
           {gameState.voteResult && (
             <div className="phase-card">
-              <h3>Voting Result</h3>
+              <h3>Результат голосования</h3>
               <p>{gameState.voteResult}</p>
             </div>
           )}

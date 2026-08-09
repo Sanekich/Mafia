@@ -4,6 +4,7 @@ import Menu from './components/Menu/Menu.jsx'
 import Room from './components/Room/Room.jsx'
 
 const STORAGE_KEY = 'mafiaRoomState'
+const API_BASE_URL = 'https://mafiaback.onrender.com'
 
 function App() {
   const [activeRoom, setActiveRoom] = useState(null)
@@ -39,7 +40,7 @@ function App() {
 
     async function restoreSession() {
       try {
-        const response = await fetch('http://localhost:5000/session/room', {
+        const response = await fetch(`${API_BASE_URL}/session/room`, {
           credentials: 'include'
         })
         if (!response.ok) {
@@ -83,7 +84,7 @@ function App() {
   }
 
   if (sessionLoading) {
-    return <div className="mafia">Loading session...</div>
+    return <div className="mafia">Загрузка сессии...</div>
   }
 
   return (

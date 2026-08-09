@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import './Menu.css'
 
+const API_BASE_URL = 'https://mafiaback.onrender.com'
+
 function Menu({ onRoomEnter }) {
   const [rooms, setRooms] = useState([])
   const [loading, setLoading] = useState(true)
@@ -17,16 +19,16 @@ function Menu({ onRoomEnter }) {
   useEffect(() => {
     async function loadRooms() {
       try {
-        const response = await fetch('http://localhost:5000/rooms', {
-        credentials: 'include'
-      })
+        const response = await fetch(`${API_BASE_URL}/rooms`, {
+          credentials: 'include'
+        })
         if (!response.ok) {
-          throw new Error(`Failed to load rooms: ${response.status}`)
+          throw new Error(`Не удалось загрузить комнаты: ${response.status}`)
         }
         const data = await response.json()
         setRooms(data)
       } catch (err) {
-        setError(err.message || 'Unable to load rooms')
+        setError(err.message || 'Не удалось загрузить комнаты')
       } finally {
         setLoading(false)
       }
@@ -64,7 +66,7 @@ function Menu({ onRoomEnter }) {
   const handleRoomSubmit = async (event) => {
     event.preventDefault()
     if (!roomName.trim() || !hostName.trim()) {
-      setError('Room name and your name are required')
+      setError('Название комнаты и ваше имя обязательны')
       return
     }
 
@@ -72,7 +74,7 @@ function Menu({ onRoomEnter }) {
     setError(null)
 
     try {
-      const response = await fetch('http://localhost:5000/rooms', {
+      const response = await fetch(`${API_BASE_URL}/rooms`, {
         credentials: 'include',
         method: 'POST',
         headers: {
@@ -83,7 +85,7 @@ function Menu({ onRoomEnter }) {
 
       if (!response.ok) {
         const body = await response.json()
-        throw new Error(body.error || `Failed to create room: ${response.status}`)
+        throw new Error(body.error || `Не удалось создать комнату: ${response.status}`)
       }
 
       const data = await response.json()
@@ -91,7 +93,7 @@ function Menu({ onRoomEnter }) {
       closeCreateModal()
       onRoomEnter(data, hostName.trim(), true)
     } catch (err) {
-      setError(err.message || 'Unable to create room')
+      setError(err.message || 'Не удалось создать комнату')
     } finally {
       setCreating(false)
     }
@@ -100,7 +102,7 @@ function Menu({ onRoomEnter }) {
   const handleJoinSubmit = async (event) => {
     event.preventDefault()
     if (!joinName.trim()) {
-      setError('Name is required to join the room')
+      setError('Для входа в комнату нужно указать имя')
       return
     }
 
@@ -108,7 +110,7 @@ function Menu({ onRoomEnter }) {
     setError(null)
 
     try {
-      const response = await fetch(`http://localhost:5000/rooms/${selectedRoom._id}/join`, {
+      const response = await fetch(`${API_BASE_URL}/rooms/${selectedRoom._id}/join`, {
         credentials: 'include',
         method: 'POST',
         headers: {
@@ -119,7 +121,7 @@ function Menu({ onRoomEnter }) {
 
       if (!response.ok) {
         const body = await response.json()
-        throw new Error(body.error || `Failed to join room: ${response.status}`)
+        throw new Error(body.error || `Не удалось войти в комнату: ${response.status}`)
       }
 
       const data = await response.json()
@@ -127,7 +129,7 @@ function Menu({ onRoomEnter }) {
       closeJoinModal()
       onRoomEnter(data, joinName.trim(), false)
     } catch (err) {
-      setError(err.message || 'Unable to join room')
+      setError(err.message || 'Не удалось войти в комнату')
     } finally {
       setJoining(false)
     }
@@ -136,28 +138,28 @@ function Menu({ onRoomEnter }) {
   return (
     <div className="list">
       <div className="list-header">
-        <h2>Rooms</h2>
-        <button className="create-room-button" onClick={openCreateModal}>Create Room</button>
+        <h2>Комнаты</h2>
+        <button className="create-room-button" onClick={openCreateModal}>Создать комнату</button>
       </div>
 
       {loading ? (
-        <p>Loading rooms...</p>
+        <p>Загрузка комнат...</p>
       ) : error ? (
         <p className="error">{error}</p>
       ) : rooms.length === 0 ? (
-        <p>No rooms found.</p>
+        <p>Комнат пока нет.</p>
       ) : (
         <ul className="room-list">
           {rooms.map((room) => (
             <li key={room._id ?? room.id} className="room-item">
               <div>
                 <strong>{room.name}</strong>
-                <div className="room-meta">Host: {room.host}</div>
-                <div className="room-meta">Players: {room.players?.length ?? 0}</div>
-                <div className="room-meta">Status: {room.started ? 'Started' : 'Waiting'}</div>
+                <div className="room-meta">Хост: {room.host}</div>
+                <div className="room-meta">Игроки: {room.players?.length ?? 0}</div>
+                <div className="room-meta">Статус: {room.started ? 'Игра началась' : 'Ожидание'}</div>
               </div>
               <button className="join-room-button" onClick={() => openJoinModal(room)}>
-                Join
+                Войти
               </button>
             </li>
           ))}
@@ -167,31 +169,31 @@ function Menu({ onRoomEnter }) {
       {createModalOpen && (
         <div className="modal-overlay" onClick={closeCreateModal}>
           <div className="modal" onClick={(event) => event.stopPropagation()}>
-            <h3>Create Room</h3>
+            <h3>Создать комнату</h3>
             <form onSubmit={handleRoomSubmit} className="modal-form">
-              <label htmlFor="roomName">Room name</label>
+              <label htmlFor="roomName">Название комнаты</label>
               <input
                 id="roomName"
                 type="text"
                 value={roomName}
                 onChange={(event) => setRoomName(event.target.value)}
-                placeholder="Enter room name"
+                placeholder="Введите название комнаты"
                 autoFocus
               />
-              <label htmlFor="hostName">Your name</label>
+              <label htmlFor="hostName">Ваше имя</label>
               <input
                 id="hostName"
                 type="text"
                 value={hostName}
                 onChange={(event) => setHostName(event.target.value)}
-                placeholder="Enter your name as host"
+                placeholder="Введите имя хоста"
               />
               <div className="modal-actions">
                 <button type="button" className="secondary" onClick={closeCreateModal}>
-                  Cancel
+                  Отмена
                 </button>
                 <button type="submit" disabled={creating}>
-                  {creating ? 'Creating…' : 'Create'}
+                  {creating ? 'Создание…' : 'Создать'}
                 </button>
               </div>
             </form>
@@ -202,23 +204,23 @@ function Menu({ onRoomEnter }) {
       {joinModalOpen && selectedRoom && (
         <div className="modal-overlay" onClick={closeJoinModal}>
           <div className="modal" onClick={(event) => event.stopPropagation()}>
-            <h3>Join {selectedRoom.name}</h3>
+            <h3>Войти в {selectedRoom.name}</h3>
             <form onSubmit={handleJoinSubmit} className="modal-form">
-              <label htmlFor="joinName">Your name</label>
+              <label htmlFor="joinName">Ваше имя</label>
               <input
                 id="joinName"
                 type="text"
                 value={joinName}
                 onChange={(event) => setJoinName(event.target.value)}
-                placeholder="Enter your name"
+                placeholder="Введите ваше имя"
                 autoFocus
               />
               <div className="modal-actions">
                 <button type="button" className="secondary" onClick={closeJoinModal}>
-                  Cancel
+                  Отмена
                 </button>
                 <button type="submit" disabled={joining}>
-                  {joining ? 'Joining…' : 'Join'}
+                  {joining ? 'Входим…' : 'Войти'}
                 </button>
               </div>
             </form>
