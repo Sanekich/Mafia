@@ -5,6 +5,22 @@ const STORAGE_KEY_PREFIX = 'mafiaGameState_'
 
 const ROLES = ['Mafia', 'Cop', 'Doctor', 'Citizen']
 
+const PHASE_LABELS = {
+  Reveal: 'Getting ready',
+  Night: 'Night phase',
+  Day: 'Day phase',
+  Vote: 'Voting',
+  Ended: 'Game over'
+}
+
+const PHASE_CLASS = {
+  Reveal: 'phase-reveal',
+  Night: 'phase-night',
+  Day: 'phase-day',
+  Vote: 'phase-vote',
+  Ended: 'phase-ended'
+}
+
 function Game({ room, playerName, isHost, onLeave }) {
   const [role, setRole] = useState('')
   const [playersWithRoles, setPlayersWithRoles] = useState([])
@@ -223,10 +239,15 @@ function Game({ room, playerName, isHost, onLeave }) {
         <div>
           <h2>{room.name} — Mafia Game</h2>
           <p className="game-subtitle">Role: <strong>{role}</strong></p>
-          <p className="game-subtitle">Phase: <strong>{gameState.phase}</strong></p>
           <p className="game-subtitle">Night {gameState.nightNumber} · Day {gameState.dayNumber}</p>
         </div>
         <button className="leave-button" onClick={onLeave}>Leave Lobby</button>
+      </div>
+
+      <div className="game-status">
+        <span className={`status-pill ${PHASE_CLASS[gameState.phase] || ''}`}>
+          {PHASE_LABELS[gameState.phase] || gameState.phase}
+        </span>
       </div>
 
       {winnerText ? (
@@ -259,8 +280,7 @@ function Game({ room, playerName, isHost, onLeave }) {
                     {player.name}
                     {player.name === room.host ? ' (host)' : ''}
                     {player.name === playerName ? ' — You' : ''}
-                    {player.role && ' — '}
-                    {player.name === playerName ? player.role : ''}
+                    {player.name === playerName ? ` — ${player.role}` : ''}
                     {!alive ? ' (dead)' : ''}
                   </li>
                 )
